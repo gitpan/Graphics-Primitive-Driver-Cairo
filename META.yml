@@ -1,0 +1,25 @@
+---
+abstract: 'Cairo backend for Graphics::Primitive'
+author:
+  - 'Cory G Watson <gphat@cpan.org>'
+build_requires:
+  Pod::Coverage::Moose: 0
+  Test::More: 0
+distribution_type: module
+generated_by: 'Module::Install version 0.75'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.3.html
+  version: 1.3
+name: Graphics-Primitive-Driver-Cairo
+no_index:
+  directory:
+    - inc
+    - t
+requires:
+  Cairo: 1.060
+  Geometry::Primitive: 0.05
+  Graphics::Primitive: 0.08
+  IO::File: 0
+  Moose: 0.54
+version: 0.01
