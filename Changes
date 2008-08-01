@@ -1,5 +1,11 @@
 Revision history for Graphics-Primitive-Driver-Cairo
 
+0.02
+  - Add _draw_arc, _draw_path and _do_fill
+  - Change to new Line accessor names
+  - TextBox: tighten up height & width of text
+  - Honor contiguous hint
+
 0.01    Date/time
         First version, released on an unsuspecting world.
 
