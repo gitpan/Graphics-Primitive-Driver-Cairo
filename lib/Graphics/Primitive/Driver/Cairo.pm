@@ -11,7 +11,7 @@ use IO::File;
 with 'Graphics::Primitive::Driver';
 
 our $AUTHORITY = 'cpan:GPHAT';
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 enum 'Graphics::Primitive::Driver::Cairo::Format' => (
     'PDF', 'PS', 'PNG', 'SVG'
@@ -194,31 +194,40 @@ sub _draw_textbox {
     my $context = $self->cairo;
 
     my $font = $comp->font;
+    my $fsize = $font->size;
     $context->select_font_face(
         $font->face, $font->slant, $font->weight
     );
-    $context->set_font_size($font->size);
+    $context->set_font_size($fsize);
 
     my $angle = $comp->angle;
 
-    my $yaccum = 0;
+    my $lh = $comp->line_height;
+    $lh = $fsize unless(defined($lh));
+
+    my $yaccum = $bbox->origin->y ;
     foreach my $line (@{ $comp->lines }) {
         my $text = $line->{text};
         my $tbox = $line->{box};
 
         my $o = $tbox->origin;
-        my $th = $tbox->height;
-        my $twidth2 = $tbox->width / 2;
-        my $theight = $tbox->height;
-        my $cwidth2 = $comp->width / 2;
-        my $cheight2 = $comp->height / 2;
+        my $bbo = $bbox->origin;
 
-        my $x = $bbox->origin->x + $o->x;# + 1;
-        my $y = abs($bbox->origin->y) + abs($o->y) + $yaccum;# + $th;
+        my $x = $bbox->origin->x + $o->x;
+
+        # The difference between the font size and the line-height is called
+        # the lead, so half of it is a half lead.
+        my $half_lead = ($lh - abs($o->y)) / 2;
+        my $y = $lh + $yaccum - $half_lead;
 
         $context->save;
 
         if($angle) {
+            my $twidth2 = $tbox->width / 2;
+            my $theight = $tbox->height;
+            my $cwidth2 = $comp->width / 2;
+            my $cheight2 = $comp->height / 2;
+
             $context->translate($cwidth2, $cheight2);
             $context->rotate($angle);
             $context->translate(-$cwidth2, -$cheight2);
@@ -231,9 +240,8 @@ sub _draw_textbox {
         }
 
         $context->restore;
-        $yaccum += $th;
+        $yaccum += $lh;
     }
-
     $context->set_source_rgba($comp->color->as_array_with_alpha);
     $context->fill;
 }
@@ -425,21 +433,34 @@ sub get_text_bounding_box {
 
     $context->new_path;
 
-    $context->select_font_face(
-        $font->face, $font->slant, $font->weight
-    );
-    $context->set_font_size($font->size);
-    $context->move_to(0, 0);
-    $context->text_path($text);
+    my $fsize = $font->size;
+    my @exts;
+    if($text eq '') {
+        # Catch empty lines.  There's no sense trying to get it's height.  We
+        # just set it to the height of the font and move on.
+        @exts = (0, -$font->size, 0, 0);
+    } else {
+        $context->select_font_face(
+            $font->face, $font->slant, $font->weight
+        );
+        $context->set_font_size($fsize);
+        $context->move_to(0, 0);
+        $context->text_path($text);
 
-    my @exts = $context->path_extents;
+        @exts = $context->path_extents;
+    }
+
+    my $tbsize = abs($exts[3]) + abs($exts[1]);
+    if($fsize > $tbsize) {
+        $tbsize = $fsize;
+    }
     my $tb = Geometry::Primitive::Rectangle->new(
         origin  => Geometry::Primitive::Point->new(
             x => $exts[0],
             y => $exts[1],
         ),
         width   => abs($exts[2]) + abs($exts[0]),
-        height  => abs($exts[3]) + abs($exts[1])
+        height  => $tbsize
     );
 
     my $cb = $tb;
@@ -456,6 +477,7 @@ sub get_text_bounding_box {
             height  => abs($y2) + abs($y1)
         );
     }
+
     return ($cb, $tb);
 }
 
