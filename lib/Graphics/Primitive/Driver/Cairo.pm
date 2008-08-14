@@ -11,7 +11,7 @@ use IO::File;
 with 'Graphics::Primitive::Driver';
 
 our $AUTHORITY = 'cpan:GPHAT';
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 enum 'Graphics::Primitive::Driver::Cairo::Format' => (
     'PDF', 'PS', 'PNG', 'SVG'
@@ -41,14 +41,6 @@ has 'format' => (
     is => 'ro',
     isa => 'Graphics::Primitive::Driver::Cairo::Format',
     default => sub { 'PNG' }
-);
-has 'height' => (
-    is => 'rw',
-    isa => 'Num'
-);
-has 'width' => (
-    is => 'rw',
-    isa => 'Num'
 );
 has 'surface' => (
     is => 'rw',
@@ -205,7 +197,8 @@ sub _draw_textbox {
     my $lh = $comp->line_height;
     $lh = $fsize unless(defined($lh));
 
-    my $yaccum = $bbox->origin->y ;
+    my $yaccum = $bbox->origin->y;
+
     foreach my $line (@{ $comp->lines }) {
         my $text = $line->{text};
         my $tbox = $line->{box};
@@ -434,6 +427,15 @@ sub get_text_bounding_box {
     $context->new_path;
 
     my $fsize = $font->size;
+
+    my $key = "$text||".$font->face.'||'.$font->slant.'||'.$font->weight.'||'.$fsize;
+
+    if(exists($self->{TBCACHE}->{$key})) {
+        return ($self->{TBCACHE}->{$key}->[0], $self->{TBCACHE}->{$key}->[1]);
+    }
+
+    $self->{$text} = 1;
+
     my @exts;
     if($text eq '') {
         # Catch empty lines.  There's no sense trying to get it's height.  We
@@ -450,6 +452,8 @@ sub get_text_bounding_box {
         @exts = $context->path_extents;
     }
 
+    # If the textbox is smaller than it's font-size, use the font-size.  This
+    # gives us a consistent line-height.
     my $tbsize = abs($exts[3]) + abs($exts[1]);
     if($fsize > $tbsize) {
         $tbsize = $fsize;
@@ -477,6 +481,8 @@ sub get_text_bounding_box {
             height  => abs($y2) + abs($y1)
         );
     }
+
+    $self->{TBCACHE}->{$key} = [ $cb, $tb ];
 
     return ($cb, $tb);
 }
