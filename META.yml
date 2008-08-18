@@ -3,6 +3,7 @@ abstract: 'Cairo backend for Graphics::Primitive'
 author:
   - 'Cory G Watson <gphat@cpan.org>'
 build_requires:
+  File::Spec: 0
   Pod::Coverage::Moose: 0
   Test::More: 0
 distribution_type: module
@@ -19,7 +20,7 @@ no_index:
 requires:
   Cairo: 1.060
   Geometry::Primitive: 0.09
-  Graphics::Primitive: 0.16
+  Graphics::Primitive: 0.17
   IO::File: 0
   Moose: 0.54
-version: 0.09
+version: 0.10
