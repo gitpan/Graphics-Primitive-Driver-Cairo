@@ -20,7 +20,7 @@ no_index:
 requires:
   Cairo: 1.060
   Geometry::Primitive: 0.09
-  Graphics::Primitive: 0.22
+  Graphics::Primitive: 0.23
   IO::File: 0
   Moose: 0.54
-version: 0.12
+version: 0.13
