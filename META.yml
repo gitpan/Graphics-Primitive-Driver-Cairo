@@ -4,7 +4,6 @@ author:
   - 'Cory G Watson <gphat@cpan.org>'
 build_requires:
   File::Spec: 0
-  Pod::Coverage::Moose: 0
   Test::More: 0
 distribution_type: module
 generated_by: 'Module::Install version 0.75'
@@ -20,7 +19,7 @@ no_index:
 requires:
   Cairo: 1.060
   Geometry::Primitive: 0.09
-  Graphics::Primitive: 0.23
+  Graphics::Primitive: 0.26
   IO::File: 0
   Moose: 0.54
-version: 0.15
+version: 0.16
