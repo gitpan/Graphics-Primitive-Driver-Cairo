@@ -11,7 +11,7 @@ use IO::File;
 with 'Graphics::Primitive::Driver';
 
 our $AUTHORITY = 'cpan:GPHAT';
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 enum 'Graphics::Primitive::Driver::Cairo::Format' => (
     qw(PDF PS PNG SVG pdf ps png svg)
@@ -204,7 +204,15 @@ sub _draw_complex_border {
 
         $context->set_line_width($bt->width);
         $context->rel_line_to($width - $mr - $ml, 0);
+
+        my $dash = $bt->dash_pattern;
+        if(defined($dash) && scalar(@{ $dash })) {
+            $context->set_dash(0, @{ $dash });
+        }
+
         $context->stroke;
+
+        $context->set_dash(0, []);
     }
 
     if($rhalf) {
@@ -213,7 +221,14 @@ sub _draw_complex_border {
 
         $context->set_line_width($br->width);
         $context->rel_line_to(0, $height - $mb);
+
+        my $dash = $br->dash_pattern;
+        if(defined($dash) && scalar(@{ $dash })) {
+            $context->set_dash(0, @{ $dash });
+        }
+
         $context->stroke;
+        $context->set_dash(0, []);
     }
 
     if($bhalf) {
@@ -222,6 +237,12 @@ sub _draw_complex_border {
 
         $context->set_line_width($bb->width);
         $context->rel_line_to(-($width - $mb), 0);
+
+        my $dash = $bb->dash_pattern;
+        if(defined($dash) && scalar(@{ $dash })) {
+            $context->set_dash(0, @{ $dash });
+        }
+
         $context->stroke;
     }
 
@@ -231,7 +252,14 @@ sub _draw_complex_border {
 
         $context->set_line_width($bl->width);
         $context->rel_line_to(0, $height - $mb);
+
+        my $dash = $bl->dash_pattern;
+        if(defined($dash) && scalar(@{ $dash })) {
+            $context->set_dash(0, @{ $dash });
+        }
+
         $context->stroke;
+        $context->set_dash(0, []);
     }
 }
 
@@ -243,9 +271,8 @@ sub _draw_simple_border {
     my $border = $comp->border;
     my $top = $border->top;
     my $bswidth = $top->width;
-    # if(defined($border->color)) {
-        $context->set_source_rgba($top->color->as_array_with_alpha);
-    # }
+
+    $context->set_source_rgba($top->color->as_array_with_alpha);
 
     my @margins = $comp->margins->as_array;
 
@@ -260,14 +287,20 @@ sub _draw_simple_border {
     my $mx = $margins[3];
     my $my = $margins[1];
 
+    my $dash = $top->dash_pattern;
+    if(defined($dash) && scalar(@{ $dash })) {
+        $context->set_dash(0, @{ $dash });
+    }
+
     $context->rectangle(
         $margins[3] + $swhalf, $margins[0] + $swhalf,
         $width - $bswidth - $margins[3] - $margins[1],
         $height - $bswidth - $margins[2] - $margins[0]
-        # $mx + $swhalf, $margins[1] + $swhalf,
-        # $width - $bswidth - $mw - $mx, $height - $bswidth - $mh - $my
     );
     $context->stroke;
+
+    # Reset dashing
+    $context->set_dash(0, []);
 }
 
 sub _draw_textbox {
@@ -403,6 +436,7 @@ sub _draw_canvas {
 
     $self->_draw_component($comp);
 
+    print "## $comp\n";
     foreach (@{ $comp->paths }) {
 
         $self->_draw_path($_->{path}, $_->{op});
@@ -470,11 +504,7 @@ sub _draw_image {
 
     $cairo->set_source_surface($imgs, 0, 0);
 
-    $cairo->fill;#_preserve;
-
-    # $cairo->set_line_width(2);
-    # $cairo->set_source_rgba(0, 0, 0, 1);
-    # $cairo->stroke;
+    $cairo->fill;
 
     $cairo->restore;
 }
@@ -598,11 +628,19 @@ sub _do_stroke {
     $context->set_line_join($br->line_join);
     $context->set_line_width($br->width);
 
+    my $dash = $br->dash_pattern;
+    if(defined($dash) && scalar(@{ $dash })) {
+        $context->set_dash(0, @{ $dash });
+    }
+
     if($stroke->preserve) {
         $context->stroke_preserve;
     } else {
         $context->stroke;
     }
+
+    # Reset dashing
+    $context->set_dash(0, []);
 }
 
 sub _finish_page {
