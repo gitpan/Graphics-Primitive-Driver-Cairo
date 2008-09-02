@@ -22,4 +22,4 @@ requires:
   Graphics::Primitive: 0.26
   IO::File: 0
   Moose: 0.54
-version: 0.20
+version: 0.21
