@@ -11,7 +11,7 @@ use IO::File;
 with 'Graphics::Primitive::Driver';
 
 our $AUTHORITY = 'cpan:GPHAT';
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 
 enum 'Graphics::Primitive::Driver::Cairo::Format' => (
     qw(PDF PS PNG SVG pdf ps png svg)
@@ -93,12 +93,6 @@ sub data {
 
     my $cr = $self->cairo;
 
-    $cr->show_page;
-
-    $cr = undef;
-    $self->clear_cairo;
-    $self->clear_surface;
-
     if(uc($self->format) eq 'PNG') {
         my $buff;
         $self->surface->write_to_png_stream(sub {
@@ -107,6 +101,12 @@ sub data {
         });
         return $buff;
     }
+
+    $cr->show_page;
+
+    $cr = undef;
+    $self->clear_cairo;
+    $self->clear_surface;
 
     return $self->{DATA};
 }
@@ -130,22 +130,9 @@ around('draw', sub {
 sub write {
     my ($self, $file) = @_;
 
-    my $cr = $self->cairo;
-
-    if(uc($self->format) eq 'PNG') {
-        $cr->get_target->write_to_png($file);
-        return;
-    }
-
-    $cr->show_page;
-
-    $cr = undef;
-    $self->clear_cairo;
-    $self->clear_surface;
-
     my $fh = IO::File->new($file, 'w')
         or die("Unable to open '$file' for writing: $!");
-    $fh->binmode(1);
+    $fh->binmode;
     $fh->print($self->data);
     $fh->close;
 }
