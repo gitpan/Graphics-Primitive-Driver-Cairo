@@ -24,4 +24,4 @@ requires:
   Math::Complex: 1.54
   Moose: 0.57
   Text::Flow: 0.01
-version: 0.25
+version: 0.26
