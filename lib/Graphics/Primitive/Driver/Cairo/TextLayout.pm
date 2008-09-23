@@ -7,35 +7,11 @@ with 'Graphics::Primitive::Driver::TextLayout';
 
 use Text::Flow;
 
-# has 'component' => (
-#     is => 'rw',
-#     isa => 'Graphics::Primitive::Component')
 has 'lines' => (
     is => 'rw',
     isa => 'ArrayRef',
     default => sub { [] }
 );
-# has 'text' => (
-#     is => 'rw',
-#     isa => 'Str',
-#     required => 1
-# );
-# has 'width' => (
-#     is => 'rw',
-#     isa => 'Num',
-#     required => 1
-# );
-
-# sub height {
-#     my ($self) = @_;
-# 
-#     my $h = 0;
-#     foreach my $l (@{ $self->lines }) {
-#         $h += defined($self->line_height)
-#             ? $self->line_height : $l->{cb}->height;
-#     }
-#     return $h;
-# }
 
 sub layout {
     my ($self, $driver) = @_;
@@ -141,12 +117,6 @@ sub slice {
         minimum_width => $self->width,
         minimum_height => $found
     );
-
-    # my %ret = (
-    #     size => $found,
-    #     lines => \@new
-    # );
-    # return \%ret;
 }
 
 __PACKAGE__->meta->make_immutable;
@@ -156,81 +126,22 @@ no Moose;
 __END__
 =head1 NAME
 
-Document::Writer::TextLayout - Text layout engine
+Graphics::Primitive::Driver::Cairo::TextLayout - Text layout engine
 
 =head1 SYNOPSIS
 
-    use Document::Writer;
-
-    my $doc = Document::Writer->new(default_color => ...);
-    my $p = $doc->next_page($width, $height);
-    $p->add_text_to_page($driver, $font, $text);
+    my $tl = $driver->get_textbox_layout($comp);
     ...
 
-=head1 METHODS
+=head1 DESCRIPTION
 
-=over 4
+Implements L<Graphics::Primitive::Driver::TextLayout>.  Please refer to it's
+documentation for usage.
 
-=item I<font>
+=head1 IMPLEMENTATION
 
-Set/Get this text layout's font.
-
-=item I<height>
-
-Get the height of this text layout.  Only useful after C<layout> has been
-called.
-
-=item I<layout>
-
-Lay out the text based on the provided attributes.
-
-=item I<lines>
-
-Set/Get this text layout's 'lines'.  This is an arrayref of hashrefs, where
-each hashref has the following members:
-
-=over 4
-
-=item B<box>
-
-The bounding box for the text in this line.  This bounding box does not
-take rotations into consideration.
-
-=item B<cb>
-
-The bounding box of required for a container that intends to contain the text
-in this line.  
-
-=item B<text>
-
-The text in this line.
-
-=back
-
-This data structure is the meat of a TextLayout.  The multi-line, unwrapped
-text is broken down into this datastructure based on the C<width> attribute.
-
-=item I<slice ($offset, [$size])>
-
-Given an offset and an optional size, returns C<n> lines from this layout
-that come as close to C<$size> without exceeding it.  This method is provided
-to allow incremental rendering of text.  For example, if you have a series
-of containers 80 units high, you might write code like this:
-
-  for(my $i = 0; $i < 3; $i++) {
-      $lines = $layout->slice($i * 80, 80);
-      # render the text
-  }
-
-=item I<text>
-
-Set/Get the text to be laid out.
-
-=item I<width>
-
-Get/Set the width at which the text in this TextLayout should be wrapped.
-
-=back
+This text layout engine uses L<Text::Flow> and L<Cairo>'s "toy text" API to
+layout text.
 
 =head1 AUTHOR
 
