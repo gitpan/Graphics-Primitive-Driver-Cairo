@@ -6,12 +6,18 @@ use Cairo;
 use Carp;
 use Geometry::Primitive::Point;
 use Geometry::Primitive::Rectangle;
+use Graphics::Primitive::Driver::Cairo::TextLayout;
 use IO::File;
+use Math::Trig ':pi';
 
 with 'Graphics::Primitive::Driver';
 
 our $AUTHORITY = 'cpan:GPHAT';
-our $VERSION = '0.24';
+our $VERSION = '0.25';
+
+enum 'Graphics::Primitive::Driver::Cairo::AntialiasModes' => (
+    qw(default none gray subpixel)
+);
 
 enum 'Graphics::Primitive::Driver::Cairo::Format' => (
     qw(PDF PS PNG SVG pdf ps png svg)
@@ -27,6 +33,10 @@ has '_preserve_count' => (
     is  => 'rw',
     default => sub { 0 }
 );
+has 'antialias_mode' => (
+    is => 'rw',
+    isa => 'Graphics::Primitive::Driver::Cairo::Antialiasing'
+);
 has 'cairo' => (
     is => 'rw',
     isa => 'Cairo::Context',
@@ -34,7 +44,13 @@ has 'cairo' => (
     lazy => 1,
     default => sub {
         my $self = shift;
-        return Cairo::Context->create($self->surface);
+        my $ctx = Cairo::Context->create($self->surface);
+
+        # if(defined($self->antialias_mode)) {
+        #     $ctx->set_antialias($self->antialias_mode);
+        # }
+
+        return $ctx;
     }
 );
 has 'format' => (
@@ -84,6 +100,7 @@ has 'surface' => (
         } else {
             croak("Unknown format '".$self->format."'");
         }
+
         return $surface;
     }
 );
@@ -301,6 +318,8 @@ sub _draw_simple_border {
 sub _draw_textbox {
     my ($self, $comp) = @_;
 
+    return unless defined($comp->text);
+
     $self->_draw_component($comp);
 
     my $bbox = $comp->inside_bounding_box;
@@ -329,7 +348,7 @@ sub _draw_textbox {
 
     my $yaccum = $bbox->origin->y;
 
-    foreach my $line (@{ $comp->lines }) {
+    foreach my $line (@{ $comp->layout->lines }) {
         my $text = $line->{text};
         my $tbox = $line->{box};
 
@@ -396,6 +415,7 @@ sub _draw_textbox {
     }
     $context->set_source_rgba($comp->color->as_array_with_alpha);
     $context->fill;
+
 }
 
 sub _draw_arc {
@@ -435,6 +455,32 @@ sub _draw_canvas {
 
         $self->_draw_path($_->{path}, $_->{op});
     }
+}
+
+sub _draw_circle {
+    my ($self, $circle) = @_;
+
+    my $context = $self->cairo;
+    my $o = $circle->origin;
+    $context->arc(
+        $o->x, $o->y, $circle->radius, 0, pi2
+    );
+}
+
+sub _draw_ellipse {
+    my ($self, $ell) = @_;
+
+    my $cairo = $self->cairo;
+    my $o = $ell->origin;
+
+    $cairo->new_sub_path;
+    $cairo->save;
+    $cairo->translate($o->x, $o->y);
+    $cairo->scale($ell->width / 2, $ell->height / 2);
+    $cairo->arc(
+        $o->x, $o->y, 1, 0, pi2
+    );
+    $cairo->restore;
 }
 
 sub _draw_image {
@@ -541,6 +587,10 @@ sub _draw_path {
             $self->_draw_arc($prim);
         } elsif($prim->isa('Geometry::Primitive::Bezier')) {
             $self->_draw_bezier($prim);
+        } elsif($prim->isa('Geometry::Primitive::Circle')) {
+            $self->_draw_circle($prim);
+        } elsif($prim->isa('Geometry::Primitive::Ellipse')) {
+            $self->_draw_ellipse($prim);
         } elsif($prim->isa('Geometry::Primitive::Polygon')) {
             $self->_draw_polygon($prim);
         }
@@ -667,20 +717,26 @@ sub _resize {
 }
 
 sub get_text_bounding_box {
-    my ($self, $font, $text, $angle) = @_;
+    my ($self, $tb, $text) = @_;
 
     my $context = $self->cairo;
+
+    my $font = $tb->font;
+
+    unless(defined($text)) {
+        $text = $tb->text;
+    }
 
     $context->new_path;
 
     my $fsize = $font->size;
 
-    my $key = "$text||".$font->face.'||'.$font->slant.'||'.$font->weight.'||'.$fsize;
+    # my $key = "$text||".$font->face.'||'.$font->slant.'||'.$font->weight.'||'.$fsize;
 
     # If our text + font key is found, return the box we already made.
-    if(exists($self->{TBCACHE}->{$key})) {
-        return ($self->{TBCACHE}->{$key}->[0], $self->{TBCACHE}->{$key}->[1]);
-    }
+    # if(exists($self->{TBCACHE}->{$key})) {
+    #     return ($self->{TBCACHE}->{$key}->[0], $self->{TBCACHE}->{$key}->[1]);
+    # }
 
     # my @exts;
     my $exts;
@@ -709,7 +765,7 @@ sub get_text_bounding_box {
     #     $tbsize = $fsize;
     # }
 
-    my $tb = Geometry::Primitive::Rectangle->new(
+    my $tbr = Geometry::Primitive::Rectangle->new(
         origin  => Geometry::Primitive::Point->new(
             x => $exts->{x_bearing},#$exts[0],
             y => $exts->{y_bearing},#$exts[1],
@@ -718,7 +774,7 @@ sub get_text_bounding_box {
         height  => $exts->{height},#$tbsize
     );
 
-    my $cb = $tb;
+    my $cb = $tbr;
     # if($angle) {
     #     $context->rotate($angle);
     # 
@@ -733,9 +789,19 @@ sub get_text_bounding_box {
     #     );
     # }
 
-    $self->{TBCACHE}->{$key} = [ $cb, $tb ];
+    # $self->{TBCACHE}->{$key} = [ $cb, $tbr ];
 
-    return ($cb, $tb);
+    return ($cb, $tbr);
+}
+
+sub get_textbox_layout {
+    my ($self, $comp) = @_;
+
+    my $tl = Graphics::Primitive::Driver::Cairo::TextLayout->new(
+        component => $comp
+    );
+    $tl->layout($self);
+    return $tl;
 }
 
 sub reset {
@@ -846,6 +912,11 @@ two rectangles are actually the same object.
 
 If the optional angle is supplied the text will be rotated by the supplied
 amount in radians.
+
+=item I<get_textbox_layout ($tb)>
+
+Returns a L<Graphics::Primitive::Driver::TextLayout> for the supplied
+textbox.
 
 =item I<reset>
 
