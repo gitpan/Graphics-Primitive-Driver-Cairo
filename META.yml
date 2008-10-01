@@ -18,10 +18,10 @@ no_index:
     - t
 requires:
   Cairo: 1.060
-  Geometry::Primitive: 0.12
-  Graphics::Primitive: 0.32
+  Geometry::Primitive: 0.13
+  Graphics::Primitive: 0.34
   IO::File: 0
   Math::Complex: 1.54
   Moose: 0.57
   Text::Flow: 0.01
-version: 0.28
+version: 0.29
