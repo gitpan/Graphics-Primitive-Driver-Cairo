@@ -13,7 +13,7 @@ use Math::Trig ':pi';
 with 'Graphics::Primitive::Driver';
 
 our $AUTHORITY = 'cpan:GPHAT';
-our $VERSION = '0.31';
+our $VERSION = '0.32';
 
 enum 'Graphics::Primitive::Driver::Cairo::AntialiasModes' => (
     qw(default none gray subpixel)
@@ -375,7 +375,6 @@ sub _draw_textbox {
 
         $context->save;
 
-		print "Angle: $angle\n";
         if($angle) {
             my $twidth2 = $twidth / 2;
             my $theight = $theight;
