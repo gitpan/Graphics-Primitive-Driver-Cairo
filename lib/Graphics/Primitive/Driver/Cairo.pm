@@ -13,7 +13,7 @@ use Math::Trig ':pi';
 with 'Graphics::Primitive::Driver';
 
 our $AUTHORITY = 'cpan:GPHAT';
-our $VERSION = '0.30';
+our $VERSION = '0.31';
 
 enum 'Graphics::Primitive::Driver::Cairo::AntialiasModes' => (
     qw(default none gray subpixel)
@@ -375,19 +375,21 @@ sub _draw_textbox {
 
         $context->save;
 
-        # if($angle) {
-        #     my $twidth2 = $twidth / 2;
-        #     my $theight = $theight;
-        #     my $cwidth2 = $width / 2;
-        #     my $cheight2 = $height / 2;
-        # 
-        #     $context->translate($cwidth2, $cheight2);
-        #     $context->rotate($angle);
-        #     $context->translate(-$cwidth2, -$cheight2);
-        #     $context->move_to($cwidth2 - $twidth2, $cheight2 + $theight / 3.5);
-        #     $context->text_path($text);
-        # 
-        # } else {
+		print "Angle: $angle\n";
+        if($angle) {
+            my $twidth2 = $twidth / 2;
+            my $theight = $theight;
+            my $cwidth2 = $width / 2;
+            my $cheight2 = $height / 2;
+
+            $context->translate($cwidth2, $cheight2);
+            $context->rotate($angle);
+            $context->translate(-$cwidth2, -$cheight2);
+
+            $context->move_to($cwidth2 - $twidth2, $cheight2 + $theight / 3.5);
+            $context->text_path($text);
+
+        } else {
             if($halign eq 'right') {
                 $x += $width - $twidth;
             } elsif($halign eq 'center') {
@@ -405,10 +407,9 @@ sub _draw_textbox {
             }
 
 
-            # $context->rectangle($x, $y, $twidth, -$theight);
             $context->move_to($x, $y);
             $context->text_path($text);
-        # }
+        }
 
         $context->restore;
         $yaccum += $lh;
@@ -783,19 +784,25 @@ sub get_text_bounding_box {
     );
 
     my $cb = $tbr;
-    # if($angle) {
-    #     $context->rotate($angle);
-    # 
-    #     my ($x1, $y1, $x2, $y2) = $context->path_extents;
-    #     $cb = Geometry::Primitive::Rectangle->new(
-    #         origin  => Geometry::Primitive::Point->new(
-    #             x => $x1,
-    #             y => $y1,
-    #         ),
-    #         width   => abs($x2) + abs($x1),
-    #         height  => abs($y2) + abs($y1)
-    #     );
-    # }
+    if($tb->angle) {
+
+        # This is a stupidly naive way to do this, but it gets the job
+        # done for now.  Just make the bounding box of the textbox as wide
+        # as it needs to be to take the widest/tallest point, that way
+        # rotations are never clipped.  The correct way would be to find
+        # the real bounding box for the transformed text.
+        my $biggest = 0;
+        if($tbr->width > $tbr->height) {
+            $biggest = $tbr->width;
+        } else {
+            $biggest = $tbr->height;
+        }
+        $cb = Geometry::Primitive::Rectangle->new(
+            origin  => $tbr->origin,
+            width   => $biggest,
+            height  => $biggest
+        );
+    }
 
     # $self->{TBCACHE}->{$key} = [ $cb, $tbr ];
 
@@ -828,8 +835,8 @@ Graphics::Primitive::Driver::Cairo - Cairo backend for Graphics::Primitive
 
 =head1 SYNOPSIS
 
-    use Graphics::Pritive::Component;
-    use Graphics::Pritive::Component;
+    use Graphics::Primitive::Component;
+    use Graphics::Primitive::Component;
     use Graphics::Primitive::Driver::Cairo;
 
     my $driver = Graphics::Primitive::Driver::Cairo->new;
@@ -869,6 +876,14 @@ Borders are drawn clockwise starting with the top one.  Since cairo can't do
 line-joins on different colored lines, each border overlaps those before it.
 This is not the way I'd like it to work, but i'm opting to fix this later.
 Consider yourself warned.
+
+=item B<Rotated Text>
+
+I'm honestly not well versed enough on the math involved in matrix manipulation
+to approach this in a smart way, and until I have the tuits this driver is
+currently not properly calculating the bounding box of rotated text.  If you
+give it a Textbox with a rotate involved, the bounding box will be the largest
+possible space the rotation I<could> yield.  This works well enough for now.
 
 =back
 
