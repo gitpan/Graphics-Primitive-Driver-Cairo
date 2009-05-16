@@ -3,14 +3,17 @@ abstract: 'Cairo backend for Graphics::Primitive'
 author:
   - 'Cory G Watson <gphat@cpan.org>'
 build_requires:
+  ExtUtils::MakeMaker: 6.42
   File::Spec: 0
   Test::More: 0
+configure_requires:
+  ExtUtils::MakeMaker: 6.42
 distribution_type: module
-generated_by: 'Module::Install version 0.75'
+generated_by: 'Module::Install version 0.88'
 license: perl
 meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.3.html
-  version: 1.3
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
 name: Graphics-Primitive-Driver-Cairo
 no_index:
   directory:
@@ -19,9 +22,11 @@ no_index:
 requires:
   Cairo: 1.061
   Geometry::Primitive: 0.13
-  Graphics::Primitive: 0.41
+  Graphics::Primitive: 0.42
   IO::File: 0
   Math::Complex: 1.56
   Moose: 0.76
   Text::Flow: 0.01
-version: 0.37
+resources:
+  license: http://dev.perl.org/licenses/
+version: 0.38
