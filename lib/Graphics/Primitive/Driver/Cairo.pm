@@ -13,7 +13,7 @@ use Math::Trig ':pi';
 with 'Graphics::Primitive::Driver';
 
 our $AUTHORITY = 'cpan:GPHAT';
-our $VERSION = '0.41';
+our $VERSION = '0.42';
 
 enum 'Graphics::Primitive::Driver::Cairo::AntialiasModes' => (
     qw(default none gray subpixel)
@@ -882,7 +882,6 @@ Graphics::Primitive::Driver::Cairo - Cairo backend for Graphics::Primitive
 
 =head1 SYNOPSIS
 
-    use Graphics::Primitive::Component;
     use Graphics::Primitive::Component;
     use Graphics::Primitive::Driver::Cairo;
 

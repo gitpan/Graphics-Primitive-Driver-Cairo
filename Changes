@@ -1,5 +1,8 @@
 Revision history for Graphics-Primitive-Driver-Cairo
 
+0.42    November 26th, 2009
+  - Fix POD typo (Thanks Brian Cassidy)
+
 0.41    November 26th, 2009
   - Match text changes (show_text) in angled text rendering, which was    
     preventing angled text from drawing.
