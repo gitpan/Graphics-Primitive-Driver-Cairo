@@ -1,6 +1,11 @@
 package Graphics::Primitive::Driver::Cairo;
+{
+  $Graphics::Primitive::Driver::Cairo::VERSION = '0.44';
+}
 use Moose;
 use Moose::Util::TypeConstraints;
+
+# ABSTRACT: Cairo backend for Graphics::Primitive
 
 use Cairo;
 use Carp;
@@ -12,9 +17,6 @@ use Math::Trig ':pi';
 
 with 'Graphics::Primitive::Driver';
 
-our $AUTHORITY = 'cpan:GPHAT';
-our $VERSION = '0.43';
-
 enum 'Graphics::Primitive::Driver::Cairo::AntialiasModes' => (
     qw(default none gray subpixel)
 );
@@ -22,6 +24,7 @@ enum 'Graphics::Primitive::Driver::Cairo::AntialiasModes' => (
 enum 'Graphics::Primitive::Driver::Cairo::Format' => (
     qw(PDF PS PNG SVG pdf ps png svg)
 );
+
 
 # If we encounter an operation with 'preserve' set to true we'll set this attr
 # to the number of primitives in that path.  On each iteration we'll check
@@ -33,10 +36,14 @@ has '_preserve_count' => (
     is  => 'rw',
     default => sub { 0 }
 );
+
+
 has 'antialias_mode' => (
     is => 'rw',
     isa => 'Graphics::Primitive::Driver::Cairo::AntialiasModes'
 );
+
+
 has 'cairo' => (
     is => 'rw',
     isa => 'Cairo::Context',
@@ -53,11 +60,15 @@ has 'cairo' => (
         return $ctx;
     }
 );
+
+
 has 'format' => (
     is => 'ro',
     isa => 'Graphics::Primitive::Driver::Cairo::Format',
     default => sub { 'PNG' }
 );
+
+
 has 'surface' => (
     is => 'rw',
     clearer => 'clear_surface',
@@ -105,6 +116,7 @@ has 'surface' => (
     }
 );
 
+
 sub data {
     my ($self) = @_;
 
@@ -143,6 +155,7 @@ around('draw', sub {
 
     $cairo->restore;
 });
+
 
 sub write {
     my ($self, $file) = @_;
@@ -251,7 +264,7 @@ sub _draw_complex_border {
         $context->set_source_rgba($bb->color->as_array_with_alpha);
 
         $context->set_line_width($bb->width);
-        $context->rel_line_to(-($width - $mb), 0);
+        $context->rel_line_to(-($width - $mr - $ml), 0);
 
         my $dash = $bb->dash_pattern;
         if(defined($dash) && scalar(@{ $dash })) {
@@ -299,8 +312,6 @@ sub _draw_simple_border {
     my $swhalf = $bswidth / 2;
     my $width = $comp->width;
     my $height = $comp->height;
-    my $mx = $margins[3];
-    my $my = $margins[1];
 
     my $dash = $top->dash_pattern;
     if(defined($dash) && scalar(@{ $dash })) {
@@ -727,6 +738,7 @@ sub _resize {
     }
 }
 
+
 sub get_text_bounding_box {
     my ($self, $tb, $text) = @_;
 
@@ -812,6 +824,7 @@ sub get_text_bounding_box {
     return ($cb, $tbr);
 }
 
+
 sub get_textbox_layout {
     my ($self, $comp) = @_;
 
@@ -821,6 +834,7 @@ sub get_textbox_layout {
     $tl->layout($self);
     return $tl;
 }
+
 
 sub reset {
     my ($self) = @_;
@@ -872,13 +886,20 @@ sub _get_bounding_box {
     return ($bw, $bh);
 }
 
+
 no Moose;
 1;
+
 __END__
+=pod
 
 =head1 NAME
 
 Graphics::Primitive::Driver::Cairo - Cairo backend for Graphics::Primitive
+
+=head1 VERSION
+
+version 0.44
 
 =head1 SYNOPSIS
 
@@ -887,9 +908,10 @@ Graphics::Primitive::Driver::Cairo - Cairo backend for Graphics::Primitive
 
     my $driver = Graphics::Primitive::Driver::Cairo->new;
     my $container = Graphics::Primitive::Container->new(
-        width => $form->sheet_width,
-        height => $form->sheet_height
+        width => 800,
+        height => 600
     );
+    my $black = Graphics::Primitive::Color->new(red => 0, green => 0, blue => 0);
     $container->border->width(1);
     $container->border->color($black);
     $container->padding(
@@ -925,7 +947,7 @@ Consider yourself warned.
 
 =back
 
-=head1 Attributes
+=head1 ATTRIBUTES
 
 =head2 antialias_mode
 
@@ -936,31 +958,25 @@ subpixel.
 
 This driver's Cairo::Context object
 
+=head2 format
+
+Get the format for this driver.
+
+=head2 surface
+
+Get/Set the surface on which this driver is operating.
+
+=head1 METHODS
+
 =head2 data
 
 Get the data in a scalar for this driver.
 
-=item I<format>
+=head2 write ($file)
 
-Get the format for this driver.
+Write this driver's data to the specified file.
 
-=item I<surface>
-
-Get/Set the surface on which this driver is operating.
-
-=head1 Methods
-
-=item I<new>
-
-Creates a new Graphics::Primitive::Driver::Cairo object.  Requires a format.
-
-  my $driver = Graphics::Primitive::Driver::Cairo->new(format => 'PDF');
-
-=item I<draw>
-
-Draws the specified component.  Container's components are drawn recursively.
-
-=item I<get_text_bounding_box ($font, $text, $angle)>
+=head2 get_text_bounding_box ($font, $text, $angle)
 
 Returns two L<Rectangles|Graphics::Primitive::Rectangle> that encloses the
 supplied text. The origin's x and y maybe negative, meaning that the glyphs in
@@ -975,38 +991,33 @@ two rectangles are actually the same object.
 If the optional angle is supplied the text will be rotated by the supplied
 amount in radians.
 
-=item I<get_textbox_layout ($tb)>
+=head2 get_textbox_layout ($tb)
 
 Returns a L<Graphics::Primitive::Driver::TextLayout> for the supplied
 textbox.
 
-=item I<reset>
+=head2 reset
 
 Reset the driver.
 
-=item I<write>
+=head2 draw
 
-Write this driver's data to the specified file.
-
-=back
-
-=head1 AUTHOR
-
-Cory Watson, C<< <gphat@cpan.org> >>
+Draws the specified component.  Container's components are drawn recursively.
 
 =head1 ACKNOWLEDGEMENTS
 
 Danny Luna
 
-=head1 BUGS
+=head1 AUTHOR
 
-Please report any bugs or feature requests to C<bug-geometry-primitive at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Geometry-Primitive>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
+Cory G Watson <gphat@cpan.org>
 
-=head1 COPYRIGHT & LICENSE
+=head1 COPYRIGHT AND LICENSE
 
-Copyright 2010 by Cory G Watson
+This software is copyright (c) 2011 by Cold Hard Code, LLC.
 
-This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut
+
