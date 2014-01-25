@@ -1,7 +1,5 @@
 package Graphics::Primitive::Driver::Cairo::TextLayout;
-{
-  $Graphics::Primitive::Driver::Cairo::TextLayout::VERSION = '0.44';
-}
+$Graphics::Primitive::Driver::Cairo::TextLayout::VERSION = '0.45';
 use Moose;
 
 # ABSTRCAT: Text layout engine
@@ -131,6 +129,7 @@ no Moose;
 1;
 
 __END__
+
 =pod
 
 =head1 NAME
@@ -139,7 +138,7 @@ Graphics::Primitive::Driver::Cairo::TextLayout
 
 =head1 VERSION
 
-version 0.44
+version 0.45
 
 =head1 SYNOPSIS
 
@@ -165,10 +164,9 @@ Cory G Watson <gphat@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2011 by Cold Hard Code, LLC.
+This software is copyright (c) 2014 by Cold Hard Code, LLC.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
-

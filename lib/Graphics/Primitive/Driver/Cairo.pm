@@ -1,7 +1,5 @@
 package Graphics::Primitive::Driver::Cairo;
-{
-  $Graphics::Primitive::Driver::Cairo::VERSION = '0.44';
-}
+$Graphics::Primitive::Driver::Cairo::VERSION = '0.45';
 use Moose;
 use Moose::Util::TypeConstraints;
 
@@ -17,13 +15,13 @@ use Math::Trig ':pi';
 
 with 'Graphics::Primitive::Driver';
 
-enum 'Graphics::Primitive::Driver::Cairo::AntialiasModes' => (
+enum 'Graphics::Primitive::Driver::Cairo::AntialiasModes' => [
     qw(default none gray subpixel)
-);
+];
 
-enum 'Graphics::Primitive::Driver::Cairo::Format' => (
+enum 'Graphics::Primitive::Driver::Cairo::Format' => [
     qw(PDF PS PNG SVG pdf ps png svg)
-);
+];
 
 
 # If we encounter an operation with 'preserve' set to true we'll set this attr
@@ -891,6 +889,7 @@ no Moose;
 1;
 
 __END__
+
 =pod
 
 =head1 NAME
@@ -899,7 +898,7 @@ Graphics::Primitive::Driver::Cairo - Cairo backend for Graphics::Primitive
 
 =head1 VERSION
 
-version 0.44
+version 0.45
 
 =head1 SYNOPSIS
 
@@ -1014,10 +1013,9 @@ Cory G Watson <gphat@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2011 by Cold Hard Code, LLC.
+This software is copyright (c) 2014 by Cold Hard Code, LLC.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
-
