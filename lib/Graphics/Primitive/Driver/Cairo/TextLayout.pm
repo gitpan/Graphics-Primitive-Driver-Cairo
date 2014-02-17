@@ -1,8 +1,8 @@
 package Graphics::Primitive::Driver::Cairo::TextLayout;
-$Graphics::Primitive::Driver::Cairo::TextLayout::VERSION = '0.45';
+$Graphics::Primitive::Driver::Cairo::TextLayout::VERSION = '0.46';
 use Moose;
 
-# ABSTRCAT: Text layout engine
+# ABSTRACT: Text layout engine
 
 use Graphics::Primitive::TextBox;
 
@@ -134,11 +134,11 @@ __END__
 
 =head1 NAME
 
-Graphics::Primitive::Driver::Cairo::TextLayout
+Graphics::Primitive::Driver::Cairo::TextLayout - Text layout engine
 
 =head1 VERSION
 
-version 0.45
+version 0.46
 
 =head1 SYNOPSIS
 

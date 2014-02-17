@@ -34,4 +34,4 @@ resources:
   bugtracker: https://github.com/gphat/graphics-primitive-driver-cairo/issues
   homepage: https://github.com/gphat/graphics-primitive-driver-cairo
   repository: https://github.com/gphat/graphics-primitive-driver-cairo.git
-version: 0.45
+version: 0.46

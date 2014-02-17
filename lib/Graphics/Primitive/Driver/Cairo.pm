@@ -1,5 +1,5 @@
 package Graphics::Primitive::Driver::Cairo;
-$Graphics::Primitive::Driver::Cairo::VERSION = '0.45';
+$Graphics::Primitive::Driver::Cairo::VERSION = '0.46';
 use Moose;
 use Moose::Util::TypeConstraints;
 
@@ -898,7 +898,7 @@ Graphics::Primitive::Driver::Cairo - Cairo backend for Graphics::Primitive
 
 =head1 VERSION
 
-version 0.45
+version 0.46
 
 =head1 SYNOPSIS
 
